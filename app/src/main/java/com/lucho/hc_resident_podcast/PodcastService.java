@@ -122,11 +122,10 @@ public class PodcastService extends Service {
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setSmallIcon(R.drawable.headphone_48)
                     .setLargeIcon(largeIcon)
-                    //.setColor(Color.argb(50,200,0,0))
                     .setColor(Color.BLACK)
                     .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
-                    .addAction(R.drawable.play_24, "Play", pendingIntentPlay)
-                    .addAction(R.drawable.eject_24, "Exit", pendingIntentExit);
+                    .addAction(R.drawable.play_20, "Play", pendingIntentPlay)
+                    .addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
         }
         return builder.build();
     }
@@ -136,17 +135,17 @@ public class PodcastService extends Service {
         builder.setContentTitle(title);
         builder.setContentText(body);
         if(type.equals("PLAY")){
-            builder.addAction(R.drawable.pause_24, "Pause", pendingIntentPause);
-            builder.addAction(R.drawable.next_24, "Next", pendingIntentNext);
-            builder.addAction(R.drawable.stop_24, "Stop", pendingIntentStop);
+            builder.addAction(R.drawable.pause_20, "Pause", pendingIntentPause);
+            builder.addAction(R.drawable.next_20, "Next", pendingIntentNext);
+            builder.addAction(R.drawable.stop_20, "Stop", pendingIntentStop);
         }else if(type.equals("PAUSE")) {
-            builder.addAction(R.drawable.play_24, "Play", pendingIntentPlay);
-            builder.addAction(R.drawable.next_24, "Next", pendingIntentNext);
-            builder.addAction(R.drawable.stop_24, "Stop", pendingIntentStop);
+            builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
+            builder.addAction(R.drawable.next_20, "Next", pendingIntentNext);
+            builder.addAction(R.drawable.stop_20, "Stop", pendingIntentStop);
         }else{
-            builder.addAction(R.drawable.play_24, "Play", pendingIntentPlay);
+            builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
         }
-        builder.addAction(R.drawable.eject_24, "Exit", pendingIntentExit);
+        builder.addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
