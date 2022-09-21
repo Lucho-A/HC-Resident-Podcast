@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.lucho.hc_resident_podcast">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/headphone_48"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/headphone_48"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar"
+        tools:targetApi="31">
+        <activity
+            android:name="com.lucho.hc_resident_podcast.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="com.lucho.hc_resident_podcast.PodcastService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+        />
+        <receiver android:name="com.lucho.hc_resident_podcast.PodcastService$NotificationReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="PLAY" />
+                <action android:name="NEXT" />
+                <action android:name="PAUSE" />
+                <action android:name="STOP" />
+                <action android:name="EXIT" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+ </manifest>
