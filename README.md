@@ -1,6 +1,6 @@
 # HC-Resident Podcast
 
-Android app for listening to more than 350 different Hernán Cattaneo Resident sessions. House and Deep House music, soooo recommend it for working, training/working-outs, running (120bpm), etc. It runs as a service, and requires internet connection, only. 
+Android app for listening to more than 450 different Hernán Cattaneo Resident sessions. House and Deep House music, soooo recommend it for working, training/working-outs, running (120bpm), etc. It runs as a service in the notification area, and requires internet connection, only. 
 
 You can get the latest apk here: https://github.com/Lucho-A/HC-Resident-Podcast/tree/master/app/release
 
