@@ -103,11 +103,6 @@ public class PodcastService extends Service {
         onDestroy();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
     private void exit() {
         android.os.Process.killProcess(android.os.Process.myPid());
     }

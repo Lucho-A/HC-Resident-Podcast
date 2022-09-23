@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.lucho.hc_resident_podcast">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -30,7 +29,7 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback"
         />
-        <receiver android:name="com.lucho.hc_resident_podcast.PodcastService$NotificationReceiver" android:exported="true">
+        <receiver android:name="com.lucho.hc_resident_podcast.PodcastService$NotificationReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="PLAY" />
                 <action android:name="NEXT" />
