@@ -5,5 +5,14 @@ Android app for listening to more than 450 different Hernán Cattaneo Resident s
 You can get the latest apk here: https://github.com/Lucho-A/HC-Resident-Podcast/tree/master/app/release
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/40904281/191395409-bb94c396-e1e1-4c70-95d0-a7b509cdb8da.png" width="400"/>
+  <img height="300" src="https://user-images.githubusercontent.com/40904281/192129205-7e0e9b7e-3937-47b2-a042-64b67d923c99.jpg">
 </p>
+
+<p align="center">
+  <img height="300" src="https://user-images.githubusercontent.com/40904281/192129197-15b2c93a-df3c-4003-bf49-f2ea67657081.jpg">
+ | | <img height="300" src="https://user-images.githubusercontent.com/40904281/192129212-08f28e1e-ce01-4f39-96d0-5c2363b7cf6f.jpg">
+</p>
+
+
+
+
