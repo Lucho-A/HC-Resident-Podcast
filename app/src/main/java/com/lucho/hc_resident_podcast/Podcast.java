@@ -14,7 +14,7 @@ import java.util.Random;
 public class Podcast {
     private MediaPlayer mPlayer = new MediaPlayer();
     private ArrayList<String> songs;
-    private String songPlaying="";
+    private Song songToPlay=null;
     private final Context mContext;
     private int pauseLength;
 
@@ -35,16 +35,11 @@ public class Podcast {
         }
     }
 
-    private Uri getRandomFile() {
+    private Uri getPodcast() {
         Random rand = new Random();
-        String songToPlay=songs.get(rand.nextInt(songs.size()));
-        for(int i=songToPlay.length()-1;i>=0;i--) {
-            if (songToPlay.charAt(i)=='/'){
-                songPlaying=songToPlay.substring(i+1,songToPlay.length()-4);
-                break;
-            }
-        }
-        return Uri.parse(songToPlay);
+        String url = songs.get(rand.nextInt(songs.size()));
+        songToPlay = new Song(url);
+        return Uri.parse(url);
     }
 
     public void play() {
@@ -57,7 +52,7 @@ public class Podcast {
         }
         try {
             mPlayer=new MediaPlayer();
-            mPlayer.setDataSource(mContext, getRandomFile());
+            mPlayer.setDataSource(mContext, getPodcast());
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.setLooping(false);
             mPlayer.prepare();
@@ -92,12 +87,12 @@ public class Podcast {
             mPlayer.release();
             mPlayer=null;
             pauseLength=0;
-            songPlaying="";
+            songToPlay=null;
         }
     }
 
-    public String getSongPlaying() {
-        return songPlaying;
+    public Song getSong() {
+        return songToPlay;
     }
 
     public boolean isPlaying() {

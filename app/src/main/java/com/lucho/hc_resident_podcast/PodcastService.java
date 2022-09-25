@@ -14,6 +14,7 @@ import android.content.Intent;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
 import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
@@ -45,9 +46,9 @@ public class PodcastService extends Service {
     public static class PodcastServiceBinder extends Binder {}
 
     public void play(){
-        actualizar_notification("Initializing podcasting...", "", "PLAY");
+        actualizar_notification("Initializing podcasting...", "", "INIT");
         podcast.play();
-        actualizar_notification("Podcasting...", podcast.getSongPlaying(), "PLAY");
+        actualizar_notification("", "", "PLAY");
     }
 
     private void next() {
@@ -57,16 +58,16 @@ public class PodcastService extends Service {
 
     public void stop(){
         podcast.stop();
-        actualizar_notification("Podcasting stopped...", "","STOP");
+        actualizar_notification("Ready for podcasting...", "","STOP");
     }
 
     public void pause(){
         if(podcast.isPlaying()) {
             podcast.pause();
-            actualizar_notification("Podecasting paused...", podcast.getSongPlaying(),"PAUSE");
+            actualizar_notification("", "","PAUSE");
         }else {
             podcast.resume();
-            actualizar_notification("Podecasting...", podcast.getSongPlaying(),"PLAY");
+            actualizar_notification("", "","PLAY");
         }
     }
 
@@ -90,7 +91,7 @@ public class PodcastService extends Service {
         intentExit.setAction("EXIT");
         pendingIntentExit = PendingIntent.getBroadcast(this, 0, intentExit, PendingIntent.FLAG_UPDATE_CURRENT);
         startForeground(NOTIFICATION_ID, crear_notification());
-        actualizar_notification("Ready for podcasting...", "","");
+        actualizar_notification("Ready for podcasting...", "","STOP");
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -117,7 +118,7 @@ public class PodcastService extends Service {
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setSmallIcon(R.drawable.headphone_48)
                     .setLargeIcon(largeIcon)
-                    .setColor(Color.BLACK)
+                    .setContentTitle("Initializing...")
                     .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
                     .addAction(R.drawable.play_20, "Play", pendingIntentPlay)
                     .addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
@@ -127,19 +128,36 @@ public class PodcastService extends Service {
 
     public void actualizar_notification(String title, String body, String type) {
         builder.clearActions();
-        builder.setContentTitle(title);
-        builder.setContentText(body);
-        if(type.equals("PLAY")){
-            builder.addAction(R.drawable.pause_20, "Pause", pendingIntentPause);
-            builder.addAction(R.drawable.next_20, "Next", pendingIntentNext);
-            builder.addAction(R.drawable.stop_20, "Stop", pendingIntentStop);
-        }else if(type.equals("PAUSE")) {
-            builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
-            builder.addAction(R.drawable.next_20, "Next", pendingIntentNext);
-            builder.addAction(R.drawable.stop_20, "Stop", pendingIntentStop);
-        }else{
-            builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
+        Bitmap largeIcon=null;
+        switch (type){
+            case "PLAY":
+            case "PAUSE":
+                builder.setContentTitle(podcast.getSong().getSongTitle());
+                builder.setContentText(podcast.getSong().getAlbum());
+                largeIcon=podcast.getSong().getArt();
+                builder.setLargeIcon(largeIcon);
+                if(type.equals("PLAY")){
+                    builder.addAction(R.drawable.pause_20, "Pause", pendingIntentPause);
+                }else{
+                    builder.setContentTitle(podcast.getSong().getSongTitle() + " (paused)");
+                    builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
+                }
+                builder.addAction(R.drawable.next_20, "Next", pendingIntentNext);
+                builder.addAction(R.drawable.stop_20, "Stop", pendingIntentStop);
+                break;
+            case "INIT":
+            case "STOP":
+                if(type.equals("STOP")) builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
+                builder.setContentTitle(title);
+                builder.setContentText(body);
+                largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada9);
+                builder.setLargeIcon(largeIcon);
+                break;
         }
+        assert largeIcon != null;
+        int pixel = largeIcon.getPixel(largeIcon.getWidth()-5,largeIcon.getHeight()-5);
+        builder.setColor(Color.argb(125,Color.red(pixel),Color.green(pixel),Color.blue(pixel)));
+        builder.setColorized(true);
         builder.addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }

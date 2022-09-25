@@ -14,21 +14,42 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends Activity {
 
+    private final Timer timer = new Timer();
+    private Boolean permOk=false;
+    private Intent intent;
     private final static int REQUEST_CODE_ASK_PERMISSIONS = 1;
-    private static final String[] REQUIRED_SDK_PERMISSIONS = new String[]{Manifest.permission.INTERNET};
+    private static final String[] REQUIRED_SDK_PERMISSIONS = new String[]{
+            Manifest.permission.INTERNET
+    };
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final Intent intent = new Intent(this.getApplication(), PodcastService.class);
+        intent = new Intent(this.getApplication(), PodcastService.class);
         checkPermissions();
+        timer.schedule(timerTask, 0,500);
         startService(intent);
         Intent intentExit = new Intent(Intent.ACTION_MAIN);
         intentExit.addCategory(Intent.CATEGORY_HOME);
         startActivity(intentExit);
     }
+
+    final TimerTask timerTask = new TimerTask() {
+        @Override
+        public void run() {
+            if(permOk) {
+                startService(intent);
+                Intent intentExit = new Intent(Intent.ACTION_MAIN);
+                intentExit.addCategory(Intent.CATEGORY_HOME);
+                startActivity(intentExit);
+                timer.cancel();
+            }
+        }
+    };
 
     protected void checkPermissions() {
         final List<String> missingPermissions = new ArrayList<>();
@@ -57,6 +78,7 @@ public class MainActivity extends Activity {
                     return;
                 }
             }
+            permOk=true;
         }
     }
 }
