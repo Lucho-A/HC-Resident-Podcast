@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
@@ -73,6 +74,7 @@ public class PodcastService extends Service {
 
     @SuppressLint("UnspecifiedImmutableFlag")
     public void onCreate() {
+        Toast.makeText(getApplicationContext(), "App starting OK. Running in notification area", Toast.LENGTH_LONG).show();
         Intent intentPlay = new Intent(this, NotificationReceiver.class);
         Intent intentNext = new Intent(this, NotificationReceiver.class);
         Intent intentPause = new Intent(this, NotificationReceiver.class);
