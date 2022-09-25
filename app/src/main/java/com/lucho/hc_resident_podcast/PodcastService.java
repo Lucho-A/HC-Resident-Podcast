@@ -23,6 +23,9 @@ import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
+import com.lucho.hc_resident_podcast.exceptions.InitPodcastException;
+import com.lucho.hc_resident_podcast.exceptions.MediaPlayerPlayException;
+
 import java.util.Objects;
 
 public class PodcastService extends Service {
@@ -48,7 +51,12 @@ public class PodcastService extends Service {
 
     public void play(){
         actualizar_notification("Initializing podcasting...", "", "INIT");
-        podcast.play();
+        try {
+            podcast.play();
+        } catch (MediaPlayerPlayException e) {
+            Toast.makeText(podcastService, e.getMsg(), Toast.LENGTH_LONG).show();
+            exit();
+        }
         actualizar_notification("", "", "PLAY");
     }
 
@@ -74,13 +82,17 @@ public class PodcastService extends Service {
 
     @SuppressLint("UnspecifiedImmutableFlag")
     public void onCreate() {
-        Toast.makeText(getApplicationContext(), "App starting OK. Running in notification area", Toast.LENGTH_LONG).show();
         Intent intentPlay = new Intent(this, NotificationReceiver.class);
         Intent intentNext = new Intent(this, NotificationReceiver.class);
         Intent intentPause = new Intent(this, NotificationReceiver.class);
         Intent intentStop = new Intent(this, NotificationReceiver.class);
         Intent intentExit = new Intent(this, NotificationReceiver.class);
-        podcast = new Podcast(this.getApplicationContext());
+        try {
+            podcast = new Podcast(this.getApplicationContext());
+        } catch (InitPodcastException e) {
+            Toast.makeText(podcastService, e.getMsg(), Toast.LENGTH_LONG).show();
+            exit();
+        }
         podcastService = this;
         intentPlay.setAction("PLAY");
         pendingIntentPlay = PendingIntent.getBroadcast(this, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -94,6 +106,7 @@ public class PodcastService extends Service {
         pendingIntentExit = PendingIntent.getBroadcast(this, 0, intentExit, PendingIntent.FLAG_UPDATE_CURRENT);
         startForeground(NOTIFICATION_ID, crear_notification());
         actualizar_notification("Ready for podcasting...", "","STOP");
+        Toast.makeText(getApplicationContext(), "App started OK. Running in notification area.", Toast.LENGTH_LONG).show();
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -103,15 +116,15 @@ public class PodcastService extends Service {
 
     public void stopService() {
         stopForeground(true);
-        onDestroy();
     }
 
     private void exit() {
+        stopService();
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     private Notification crear_notification() {
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada9);
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Service Notification", NotificationManager.IMPORTANCE_LOW);
             notificationManager = getSystemService(NotificationManager.class);
@@ -120,10 +133,7 @@ public class PodcastService extends Service {
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setSmallIcon(R.drawable.headphone_48)
                     .setLargeIcon(largeIcon)
-                    .setContentTitle("Initializing...")
-                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
-                    .addAction(R.drawable.play_20, "Play", pendingIntentPlay)
-                    .addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
+                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle());
         }
         return builder.build();
     }
@@ -152,7 +162,7 @@ public class PodcastService extends Service {
                 if(type.equals("STOP")) builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
                 builder.setContentTitle(title);
                 builder.setContentText(body);
-                largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada9);
+                largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada);
                 builder.setLargeIcon(largeIcon);
                 break;
         }
@@ -176,7 +186,6 @@ public class PodcastService extends Service {
                 podcastService.stop();
             } else if (Objects.equals(intent.getAction(),"EXIT")){
                 podcastService.stop();
-                podcastService.stopService();
                 podcastService.exit();
             }
         }

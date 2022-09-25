@@ -29,7 +29,7 @@ public class Song {
                 InputStream is = new ByteArrayInputStream(mmr.getEmbeddedPicture());
                 art = BitmapFactory.decodeStream(is);
             } else {
-                setArt(String.valueOf(R.raw.portada9));
+                setArt(String.valueOf(R.raw.portada));
             }
         }catch (Exception e){
             Log.e("Error: ", e.getMessage());
