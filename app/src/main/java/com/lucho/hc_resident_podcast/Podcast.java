@@ -55,8 +55,8 @@ public class Podcast {
             mPlayer.setDataSource(mContext, getPodcast());
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.setLooping(false);
-            mPlayer.prepare();
-            mPlayer.start();
+            mPlayer.prepareAsync();
+            mPlayer.setOnPreparedListener(MediaPlayer::start);
         } catch (IOException e) {
             e.printStackTrace();
         }
