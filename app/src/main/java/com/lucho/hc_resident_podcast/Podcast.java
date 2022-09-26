@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Podcast {
-    private MediaPlayer mPlayer = new MediaPlayer();
-    private ArrayList<String> songs;
-    private Song songToPlay=null;
     private final Context mContext;
+    private final MediaPlayer mPlayer = new MediaPlayer();
+    private ArrayList<String> songs;
+    private static Song songToPlay=null;
     private int pauseLength;
 
     public Podcast(Context mContext) throws InitPodcastException {
@@ -46,15 +46,12 @@ public class Podcast {
     }
 
     public void play() throws MediaPlayerPlayException {
-        if(mPlayer!=null) {
-            if (mPlayer.isPlaying()) return;
-            if (pauseLength != 0) {
-                resume();
-                return;
-            }
+        if (mPlayer.isPlaying()) return;
+        if (pauseLength != 0) {
+            resume();
+            return;
         }
         try {
-            mPlayer=new MediaPlayer();
             mPlayer.setDataSource(mContext, getPodcast());
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.setLooping(false);
@@ -74,28 +71,21 @@ public class Podcast {
     }
 
     public void pause() {
-        if(mPlayer!=null){
-            mPlayer.pause();
-            pauseLength=mPlayer.getCurrentPosition();
-        }
+        mPlayer.pause();
+        pauseLength=mPlayer.getCurrentPosition();
     }
 
     public void resume() {
-        if(mPlayer!=null) {
-            mPlayer.seekTo(pauseLength);
-            mPlayer.start();
-            pauseLength=0;
-        }
+        mPlayer.seekTo(pauseLength);
+        mPlayer.start();
+        pauseLength=0;
     }
 
     public void stop() {
-        if(mPlayer!=null) {
-            mPlayer.stop();
-            mPlayer.release();
-            mPlayer=null;
-            pauseLength=0;
-            songToPlay=null;
-        }
+        mPlayer.stop();
+        mPlayer.reset();
+        pauseLength=0;
+        songToPlay=null;
     }
 
     public Song getSong() {
@@ -103,7 +93,6 @@ public class Podcast {
     }
 
     public boolean isPlaying() {
-        if(mPlayer!=null) return mPlayer.isPlaying();
-        return false;
+        return mPlayer.isPlaying();
     }
 }

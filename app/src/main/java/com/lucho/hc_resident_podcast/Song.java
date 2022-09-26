@@ -12,28 +12,39 @@ import java.util.HashMap;
 public class Song {
     private String songTitle;
     private String album;
-    private Bitmap art;
+    private Bitmap cover;
+    private Boolean infoUpdated;
 
     public Song(String url){
         setInfo(url);
     }
 
     public void setInfo(String url){
-        try {
-            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-            mmr.setDataSource(url, new HashMap<>());
-            songTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-            byte[] artBytes = mmr.getEmbeddedPicture();
-            if (artBytes != null) {
-                InputStream is = new ByteArrayInputStream(mmr.getEmbeddedPicture());
-                art = BitmapFactory.decodeStream(is);
-            } else {
-                setArt(String.valueOf(R.raw.portada));
+        songTitle="Trying to retrieve track info...";
+        infoUpdated=false;
+        Thread searchInfo= new Thread(() -> {
+            try {
+                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                mmr.setDataSource(url, new HashMap<>());
+                songTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                album = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                byte[] artBytes = mmr.getEmbeddedPicture();
+                if (artBytes!=null) {
+                    InputStream is = new ByteArrayInputStream(mmr.getEmbeddedPicture());
+                    cover = BitmapFactory.decodeStream(is);
+                } else {
+                    setCover(String.valueOf(R.raw.portada));
+                }
+            }catch (Exception e){
+                Log.e("Error: ", e.getMessage());
             }
-        }catch (Exception e){
-            Log.e("Error: ", e.getMessage());
-        }
+            infoUpdated=true;
+        });
+        searchInfo.start();
+    }
+
+    public Boolean getInfoUpdated() {
+        return infoUpdated;
     }
 
     public String getSongTitle() {
@@ -44,13 +55,13 @@ public class Song {
         return album;
     }
 
-    public Bitmap getArt() {
-        return art;
+    public Bitmap getCover() {
+        return cover;
     }
 
-    public void setArt(String bm) {
+    public void setCover(String bm) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        art= BitmapFactory.decodeFile(bm, options);
+        cover = BitmapFactory.decodeFile(bm, options);
     }
 }

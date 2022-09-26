@@ -27,6 +27,8 @@ import com.lucho.hc_resident_podcast.exceptions.InitPodcastException;
 import com.lucho.hc_resident_podcast.exceptions.MediaPlayerPlayException;
 
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class PodcastService extends Service {
     private static final String CHANNEL_ID = "Channel_PodcastService";
@@ -42,43 +44,14 @@ public class PodcastService extends Service {
     private static Podcast podcast;
     private static PodcastService podcastService;
     private final PodcastServiceBinder binder = new PodcastServiceBinder();
+    private final Timer timer = new Timer();
+    private Boolean trackInfoUpdated=false;
 
     public IBinder onBind(Intent intent) {
         return binder;
     }
 
     public static class PodcastServiceBinder extends Binder {}
-
-    public void play(){
-        actualizar_notification("Initializing podcasting...", "", "INIT");
-        try {
-            podcast.play();
-        } catch (MediaPlayerPlayException e) {
-            Toast.makeText(podcastService, e.getMsg(), Toast.LENGTH_LONG).show();
-            exit();
-        }
-        actualizar_notification("", "", "PLAY");
-    }
-
-    private void next() {
-        stop();
-        play();
-    }
-
-    public void stop(){
-        podcast.stop();
-        actualizar_notification("Ready for podcasting...", "","STOP");
-    }
-
-    public void pause(){
-        if(podcast.isPlaying()) {
-            podcast.pause();
-            actualizar_notification("", "","PAUSE");
-        }else {
-            podcast.resume();
-            actualizar_notification("", "","PLAY");
-        }
-    }
 
     @SuppressLint("UnspecifiedImmutableFlag")
     public void onCreate() {
@@ -107,6 +80,43 @@ public class PodcastService extends Service {
         startForeground(NOTIFICATION_ID, crear_notification());
         actualizar_notification("Ready for podcasting...", "","STOP");
         Toast.makeText(getApplicationContext(), "App started OK. Running in notification area.", Toast.LENGTH_LONG).show();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(podcast.getSong()!=null && !trackInfoUpdated && podcast.getSong().getInfoUpdated() && podcast.isPlaying()){
+                    trackInfoUpdated=true;
+                    actualizar_notification("", "", "PLAY");
+                }
+            }
+        },0,1000);
+    }
+
+    public void play(){
+        try {
+            podcast.play();
+        } catch (MediaPlayerPlayException e) {
+            Toast.makeText(podcastService, e.getMsg(), Toast.LENGTH_LONG).show();
+            exit();
+        }
+        trackInfoUpdated=false;
+        actualizar_notification("", "", "PLAY");
+    }
+
+    private void next() {
+        stop();
+        play();
+    }
+
+    public void stop(){
+        podcast.stop();
+        actualizar_notification("Ready for podcasting...", "","STOP");
+    }
+
+    public void pause(){
+        if(podcast.isPlaying()) {
+            podcast.pause();
+            actualizar_notification("", "","PAUSE");
+        }
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -146,7 +156,7 @@ public class PodcastService extends Service {
             case "PAUSE":
                 builder.setContentTitle(podcast.getSong().getSongTitle());
                 builder.setContentText(podcast.getSong().getAlbum());
-                largeIcon=podcast.getSong().getArt();
+                largeIcon=podcast.getSong().getCover();
                 builder.setLargeIcon(largeIcon);
                 if(type.equals("PLAY")){
                     builder.addAction(R.drawable.pause_20, "Pause", pendingIntentPause);
@@ -166,10 +176,15 @@ public class PodcastService extends Service {
                 builder.setLargeIcon(largeIcon);
                 break;
         }
-        assert largeIcon != null;
-        int pixel = largeIcon.getPixel(largeIcon.getWidth()-5,largeIcon.getHeight()-5);
-        builder.setColor(Color.argb(125,Color.red(pixel),Color.green(pixel),Color.blue(pixel)));
-        builder.setColorized(true);
+        if(!trackInfoUpdated) {
+            largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada);
+            builder.setLargeIcon(largeIcon);
+        }
+        if(largeIcon!=null) {
+            int pixel = largeIcon.getPixel(largeIcon.getWidth() - 5, largeIcon.getHeight() - 5);
+            builder.setColor(Color.argb(125, Color.red(pixel), Color.green(pixel), Color.blue(pixel)));
+            builder.setColorized(true);
+        }
         builder.addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }
