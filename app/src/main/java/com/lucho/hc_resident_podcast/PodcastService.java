@@ -83,7 +83,7 @@ public class PodcastService extends Service {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(podcast.getSong()!=null && !trackInfoUpdated && podcast.getSong().getInfoUpdated() && podcast.isPlaying()){
+                if(podcast.getSong()!=null && !trackInfoUpdated && podcast.getSong().getTrackInfoUpdated() && podcast.isPlaying()){
                     trackInfoUpdated=true;
                     actualizar_notification("", "", "PLAY");
                 }
@@ -92,6 +92,7 @@ public class PodcastService extends Service {
     }
 
     public void play(){
+        actualizar_notification("Fetching next song...", "","INIT");
         try {
             podcast.play();
         } catch (MediaPlayerPlayException e) {
@@ -100,6 +101,19 @@ public class PodcastService extends Service {
         }
         trackInfoUpdated=false;
         actualizar_notification("", "", "PLAY");
+        final int[] contWaiting = {0};
+        Timer timerWaitForSong = new Timer();
+        timerWaitForSong.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                contWaiting[0]++;
+                if(contWaiting[0]==10){
+                    contWaiting[0]=0;
+                    next();
+                }
+                if(podcast.isPlaying()) cancel();
+            }
+        },0,1000);
     }
 
     private void next() {
@@ -150,18 +164,17 @@ public class PodcastService extends Service {
 
     public void actualizar_notification(String title, String body, String type) {
         builder.clearActions();
-        Bitmap largeIcon=null;
+        Bitmap cover=null;
         switch (type){
             case "PLAY":
             case "PAUSE":
-                builder.setContentTitle(podcast.getSong().getSongTitle());
-                builder.setContentText(podcast.getSong().getAlbum());
-                largeIcon=podcast.getSong().getCover();
-                builder.setLargeIcon(largeIcon);
+                builder.setContentTitle(podcast.getSong().getTrackTitle());
+                builder.setContentText(podcast.getSong().getTrackAlbum());
+                cover=podcast.getSong().getTrackCover();
                 if(type.equals("PLAY")){
                     builder.addAction(R.drawable.pause_20, "Pause", pendingIntentPause);
                 }else{
-                    builder.setContentTitle(podcast.getSong().getSongTitle() + " (paused)");
+                    builder.setContentTitle(podcast.getSong().getTrackTitle() + " (paused)");
                     builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
                 }
                 builder.addAction(R.drawable.next_20, "Next", pendingIntentNext);
@@ -172,22 +185,34 @@ public class PodcastService extends Service {
                 if(type.equals("STOP")) builder.addAction(R.drawable.play_20, "Play", pendingIntentPlay);
                 builder.setContentTitle(title);
                 builder.setContentText(body);
-                largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada);
-                builder.setLargeIcon(largeIcon);
+                cover = BitmapFactory.decodeResource(getResources(), R.raw.portada);
                 break;
         }
-        if(!trackInfoUpdated) {
-            largeIcon = BitmapFactory.decodeResource(getResources(), R.raw.portada);
-            builder.setLargeIcon(largeIcon);
-        }
-        if(largeIcon!=null) {
-            int pixel = largeIcon.getPixel(largeIcon.getWidth() - 5, largeIcon.getHeight() - 5);
+        builder.setLargeIcon(cover);
+        if(cover!=null) {
+            //builder.setColor(calculate_bg_notif_color(cover));
+            int pixel = cover.getPixel(cover.getWidth() - 5, cover.getHeight() - 5);
             builder.setColor(Color.argb(125, Color.red(pixel), Color.green(pixel), Color.blue(pixel)));
             builder.setColorized(true);
         }
         builder.addAction(R.drawable.eject_20, "Exit", pendingIntentExit);
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }
+
+    /*public int calculate_bg_notif_color(Bitmap bm){
+        int width=bm.getWidth(), height=bm.getHeight();
+        int r=0,g=0,b=0, total=0;
+        for(int x=0;x<width/10;x++){
+            for(int y=0;y<height;y++){
+                int pixel = bm.getPixel(x, y);
+                total++;
+                r += Color.red(pixel);
+                g += Color.green(pixel);
+                b += Color.blue(pixel);
+            }
+        }
+        return Color.argb(255,r/total,g/total,b/total);
+    }*/
 
     public static class NotificationReceiver extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {

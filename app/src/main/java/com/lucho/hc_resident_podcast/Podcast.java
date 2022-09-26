@@ -16,10 +16,11 @@ import java.util.Random;
 
 public class Podcast {
     private final Context mContext;
-    private final MediaPlayer mPlayer = new MediaPlayer();
+    private MediaPlayer mPlayer;
     private ArrayList<String> songs;
-    private static Song songToPlay=null;
+    private Track trackLoaded =null;
     private int pauseLength;
+    private Boolean isReleased;
 
     public Podcast(Context mContext) throws InitPodcastException {
         this.mContext=mContext;
@@ -34,34 +35,38 @@ public class Podcast {
             while((s=in.readLine())!=null) songs.add(s);
             in.close();
         } catch (Exception e) {
-            throw new InitPodcastException(e);
+            throw new InitPodcastException(e.getMessage());
         }
     }
 
     private Uri getPodcast() {
         Random rand = new Random();
         String url = songs.get(rand.nextInt(songs.size()));
-        songToPlay = new Song(url);
+        trackLoaded = new Track(mContext, url);
         return Uri.parse(url);
     }
 
     public void play() throws MediaPlayerPlayException {
-        if (mPlayer.isPlaying()) return;
+        if (isPlaying()) return;
         if (pauseLength != 0) {
             resume();
             return;
         }
         try {
-            mPlayer.setDataSource(mContext, getPodcast());
+            mPlayer=new MediaPlayer();
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.setLooping(false);
-            mPlayer.prepareAsync();
-            mPlayer.setOnPreparedListener(MediaPlayer::start);
+            Uri nextTrack=getPodcast();
+            mPlayer.setDataSource(mContext, nextTrack);
+            isReleased=false;
         } catch (IOException e) {
-            throw new MediaPlayerPlayException(e);
+            stop();
+            throw new MediaPlayerPlayException(e.getMessage());
         }
+        mPlayer.prepareAsync();
+        mPlayer.setOnPreparedListener(MediaPlayer::start);
         mPlayer.setOnCompletionListener(mediaPlayer -> {
-            mediaPlayer.reset();
+            stop();
             try {
                 play();
             } catch (MediaPlayerPlayException e) {
@@ -71,8 +76,8 @@ public class Podcast {
     }
 
     public void pause() {
-        mPlayer.pause();
         pauseLength=mPlayer.getCurrentPosition();
+        mPlayer.pause();
     }
 
     public void resume() {
@@ -82,17 +87,21 @@ public class Podcast {
     }
 
     public void stop() {
-        mPlayer.stop();
-        mPlayer.reset();
+        if(mPlayer!=null) mPlayer.stop();
+        isReleased=true;
+        mPlayer=null;
         pauseLength=0;
-        songToPlay=null;
+        trackLoaded =null;
     }
 
-    public Song getSong() {
-        return songToPlay;
+    public Track getSong() {
+        return trackLoaded;
     }
 
     public boolean isPlaying() {
-        return mPlayer.isPlaying();
+        if (mPlayer!=null && !isReleased) {
+            return mPlayer.isPlaying();
+        }
+        return false;
     }
 }
