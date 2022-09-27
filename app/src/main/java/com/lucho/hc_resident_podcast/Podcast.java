@@ -3,7 +3,6 @@ package com.lucho.hc_resident_podcast;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 
 import com.lucho.hc_resident_podcast.exceptions.InitPodcastException;
 import com.lucho.hc_resident_podcast.exceptions.MediaPlayerPlayException;
@@ -17,10 +16,11 @@ import java.util.Random;
 public class Podcast {
     private final Context mContext;
     private MediaPlayer mPlayer;
-    private ArrayList<String> songs;
+    private ArrayList<String> tracks;
     private Track trackLoaded =null;
     private int pauseLength;
     private Boolean isReleased;
+    private Boolean readyForLooping=false;
 
     public Podcast(Context mContext) throws InitPodcastException {
         this.mContext=mContext;
@@ -28,22 +28,22 @@ public class Podcast {
     }
 
     private void init_podcast() throws InitPodcastException {
-        songs = new ArrayList<>();
+        tracks = new ArrayList<>();
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(mContext.getResources().openRawResource(R.raw.links)));
             String s;
-            while((s=in.readLine())!=null) songs.add(s);
+            while((s=in.readLine())!=null) tracks.add(s);
             in.close();
         } catch (Exception e) {
             throw new InitPodcastException(e.getMessage());
         }
     }
 
-    private Uri getPodcast() {
+    private String getTrack() {
         Random rand = new Random();
-        String url = songs.get(rand.nextInt(songs.size()));
+        String url = tracks.get(rand.nextInt(tracks.size()));
         trackLoaded = new Track(mContext, url);
-        return Uri.parse(url);
+        return url;
     }
 
     public void play() throws MediaPlayerPlayException {
@@ -56,23 +56,17 @@ public class Podcast {
             mPlayer=new MediaPlayer();
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.setLooping(false);
-            Uri nextTrack=getPodcast();
-            mPlayer.setDataSource(mContext, nextTrack);
+            readyForLooping =false;
+            String nextTrack= getTrack();
+            mPlayer.setDataSource(nextTrack);
             isReleased=false;
         } catch (IOException e) {
             stop();
             throw new MediaPlayerPlayException(e.getMessage());
         }
         mPlayer.prepareAsync();
-        mPlayer.setOnPreparedListener(MediaPlayer::start);
-        mPlayer.setOnCompletionListener(mediaPlayer -> {
-            stop();
-            try {
-                play();
-            } catch (MediaPlayerPlayException e) {
-                e.printStackTrace();
-            }
-        });
+        mPlayer.setOnPreparedListener(MediaPlayer-> mPlayer.start());
+        mPlayer.setOnCompletionListener(mediaPlayer -> readyForLooping=true);
     }
 
     public void pause() {
@@ -94,7 +88,7 @@ public class Podcast {
         trackLoaded =null;
     }
 
-    public Track getSong() {
+    public Track getTrackLoaded() {
         return trackLoaded;
     }
 
@@ -103,5 +97,9 @@ public class Podcast {
             return mPlayer.isPlaying();
         }
         return false;
+    }
+
+    public Boolean getReadyForLooping() {
+        return readyForLooping;
     }
 }

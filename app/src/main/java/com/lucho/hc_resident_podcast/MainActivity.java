@@ -32,10 +32,6 @@ public class MainActivity extends Activity {
         intent = new Intent(this.getApplication(), PodcastService.class);
         checkPermissions();
         timer.schedule(timerTask, 0,500);
-        startService(intent);
-        Intent intentExit = new Intent(Intent.ACTION_MAIN);
-        intentExit.addCategory(Intent.CATEGORY_HOME);
-        startActivity(intentExit);
     }
 
     final TimerTask timerTask = new TimerTask() {

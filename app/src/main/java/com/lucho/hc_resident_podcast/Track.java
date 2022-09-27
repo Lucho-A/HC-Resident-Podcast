@@ -25,6 +25,7 @@ public class Track {
         trackAlbum ="";
         trackCover = BitmapFactory.decodeResource(mContext.getResources(), R.raw.portada);
         trackInfoUpdated =false;
+
         Thread searchInfo= new Thread(() -> {
             try {
                 MediaMetadataRetriever mmr = new MediaMetadataRetriever();
