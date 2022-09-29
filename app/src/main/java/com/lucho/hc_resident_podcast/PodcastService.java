@@ -47,6 +47,7 @@ public class PodcastService extends Service {
     private static PodcastService podcastService;
     private final PodcastServiceBinder binder = new PodcastServiceBinder();
     private Track trackPlaying =null;
+    private MediaSessionCompat mediaSession;
 
     public IBinder onBind(Intent intent) {
         return binder;
@@ -213,7 +214,7 @@ public class PodcastService extends Service {
     }
 
     private void configureMediaSession() {
-        MediaSessionCompat mediaSession = new MediaSessionCompat(this, "MyMediaSession");
+        mediaSession = new MediaSessionCompat(this, "MyMediaSession");
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public boolean onMediaButtonEvent(Intent mediaButtonIntent) {
