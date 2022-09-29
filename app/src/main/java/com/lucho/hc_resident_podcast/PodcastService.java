@@ -19,6 +19,8 @@ import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
@@ -86,6 +88,7 @@ public class PodcastService extends Service {
                 if(podcast.getReadyForLooping()) play();
             }
         },0,1000);
+        configureMediaSession();
     }
 
     public void play(){
@@ -207,5 +210,21 @@ public class PodcastService extends Service {
                 podcastService.exit();
             }
         }
+    }
+
+    private void configureMediaSession() {
+        MediaSessionCompat mediaSession = new MediaSessionCompat(this, "MyMediaSession");
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public boolean onMediaButtonEvent(Intent mediaButtonIntent) {
+                KeyEvent ke = mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+                if (ke != null && ke.getAction() == KeyEvent.ACTION_DOWN && ke.getKeyCode()==KeyEvent.KEYCODE_MEDIA_NEXT) next();
+                if (ke != null && ke.getAction() == KeyEvent.ACTION_DOWN && ke.getKeyCode()==KeyEvent.KEYCODE_MEDIA_PLAY) play();
+                if (ke != null && ke.getAction() == KeyEvent.ACTION_DOWN && ke.getKeyCode()==KeyEvent.KEYCODE_MEDIA_PAUSE) pause();
+                return super.onMediaButtonEvent(mediaButtonIntent);
+            }
+        });
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setActive(true);
     }
 }

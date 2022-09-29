@@ -21,7 +21,7 @@ public class Track {
     }
 
     public void setInfo(Context mContext, String url){
-        trackTitle ="Trying to retrieve track info...";
+        trackTitle ="Retrieving track info...";
         trackAlbum ="";
         trackCover = BitmapFactory.decodeResource(mContext.getResources(), R.raw.portada);
         trackInfoUpdated =false;
