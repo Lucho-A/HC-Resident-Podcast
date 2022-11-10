@@ -47,7 +47,6 @@ public class PodcastService extends Service {
     private static PodcastService podcastService;
     private final PodcastServiceBinder binder = new PodcastServiceBinder();
     private Track trackPlaying =null;
-    private MediaSessionCompat mediaSession;
 
     public IBinder onBind(Intent intent) {
         return binder;
@@ -55,7 +54,6 @@ public class PodcastService extends Service {
 
     public static class PodcastServiceBinder extends Binder {}
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     public void onCreate() {
         Intent intentPlay = new Intent(this, NotificationReceiver.class);
         Intent intentNext = new Intent(this, NotificationReceiver.class);
@@ -70,15 +68,17 @@ public class PodcastService extends Service {
         }
         podcastService = this;
         intentPlay.setAction("PLAY");
-        pendingIntentPlay = PendingIntent.getBroadcast(this, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT);
         intentNext.setAction("NEXT");
-        pendingIntentNext = PendingIntent.getBroadcast(this, 0, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
         intentPause.setAction("PAUSE");
-        pendingIntentPause = PendingIntent.getBroadcast(this, 0, intentPause, PendingIntent.FLAG_UPDATE_CURRENT);
         intentStop.setAction("STOP");
-        pendingIntentStop = PendingIntent.getBroadcast(this, 0, intentStop, PendingIntent.FLAG_UPDATE_CURRENT);
         intentExit.setAction("EXIT");
-        pendingIntentExit = PendingIntent.getBroadcast(this, 0, intentExit, PendingIntent.FLAG_UPDATE_CURRENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pendingIntentPlay = PendingIntent.getBroadcast(this, 0, intentPlay, PendingIntent.FLAG_IMMUTABLE);
+            pendingIntentNext = PendingIntent.getBroadcast(this, 0, intentNext, PendingIntent.FLAG_IMMUTABLE);
+            pendingIntentPause = PendingIntent.getBroadcast(this, 0, intentPause, PendingIntent.FLAG_IMMUTABLE);
+            pendingIntentStop = PendingIntent.getBroadcast(this, 0, intentStop, PendingIntent.FLAG_IMMUTABLE);
+            pendingIntentExit = PendingIntent.getBroadcast(this, 0, intentExit, PendingIntent.FLAG_IMMUTABLE);
+        }
         startForeground(NOTIFICATION_ID, crear_notification());
         actualizar_notification("Ready for podcasting...", "","STOP");
         Toast.makeText(getApplicationContext(), "App started OK. Running in notification area.", Toast.LENGTH_LONG).show();
@@ -214,7 +214,7 @@ public class PodcastService extends Service {
     }
 
     private void configureMediaSession() {
-        mediaSession = new MediaSessionCompat(this, "MyMediaSession");
+        MediaSessionCompat mediaSession = new MediaSessionCompat(this, "MyMediaSession");
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public boolean onMediaButtonEvent(Intent mediaButtonIntent) {

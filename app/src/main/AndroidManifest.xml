@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" tools:remove="android:maxSdkVersion"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:remove="android:maxSdkVersion"/>
 
     <application
         android:requestLegacyExternalStorage="true"
