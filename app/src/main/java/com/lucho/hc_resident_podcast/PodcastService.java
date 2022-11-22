@@ -1,20 +1,16 @@
 package com.lucho.hc_resident_podcast;
 
 import android.annotation.SuppressLint;
-
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
 import android.graphics.Color;
 import android.os.Binder;
 import android.os.Build;
@@ -28,6 +24,7 @@ import androidx.core.app.NotificationCompat;
 import com.lucho.hc_resident_podcast.exceptions.InitPodcastException;
 import com.lucho.hc_resident_podcast.exceptions.MediaPlayerPlayException;
 
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,6 +44,7 @@ public class PodcastService extends Service {
     private static PodcastService podcastService;
     private final PodcastServiceBinder binder = new PodcastServiceBinder();
     private Track trackPlaying =null;
+    private static boolean isUpdated=true;
 
     public IBinder onBind(Intent intent) {
         return binder;
@@ -80,16 +78,23 @@ public class PodcastService extends Service {
             pendingIntentExit = PendingIntent.getBroadcast(this, 0, intentExit, PendingIntent.FLAG_IMMUTABLE);
         }
         startForeground(NOTIFICATION_ID, crear_notification());
-        actualizar_notification("Ready for podcasting...", "","STOP");
+        actualizar_notification("Ready for podcasting...", "", "STOP");
         Toast.makeText(getApplicationContext(), "App started OK. Running in notification area.", Toast.LENGTH_LONG).show();
-        Timer askForLooping=new Timer();
+        Timer askForLooping = new Timer();
         askForLooping.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(podcast.getReadyForLooping()) play();
+                if (podcast.getReadyForLooping()) play();
             }
-        },0,1000);
+        }, 0, 1000);
         configureMediaSession();
+        try {
+            MySQL_HOME mySQL_home = new MySQL_HOME();
+            isUpdated = mySQL_home.isUpdated();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (!isUpdated) Toast.makeText(getApplicationContext(), "App out-of-date. ", Toast.LENGTH_LONG).show();
     }
 
     public void play(){
